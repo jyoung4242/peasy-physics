@@ -2,6 +2,7 @@ import "./style.css";
 
 import { Physics, Vector, Stadium, Circle, Entity as PhysicsEntity } from "@peasy-lib/peasy-physics";
 import { UI } from "@peasy-lib/peasy-ui";
+import { Input } from "@peasy-lib/peasy-input";
 
 /********************************************** */
 //PEASY-UI
@@ -72,6 +73,17 @@ asteroid.maxSpeed = 500;
 asteroid = Physics.addEntities(asteroid)[1];
 asteroid.mass = 10;
 
+/*
+ * Peasy-Input
+ */
+
+const mapping = Input.map({
+  ArrowUp: "thrust",
+  ArrowDown: "reverse",
+  ArrowLeft: "turnL",
+  ArrowRight: "turnR",
+});
+
 /********************************************** */
 //Game Loop
 /************************************************/
@@ -87,6 +99,12 @@ const game_loop = (timestamp: number) => {
     deltaTime = 0;
     lasttime = timestamp;
   }
+
+  //check inputs
+  if (Input.is("thrust")) console.log("thrust");
+  if (Input.is("reverse")) console.log("reverse thrust");
+  if (Input.is("turnL")) console.log("turn L");
+  if (Input.is("turnR")) console.log("turn R");
 
   UI.update();
   Physics.update(deltaTime, timestamp);
