@@ -9,11 +9,13 @@ import { Input } from "@peasy-lib/peasy-input";
 /************************************************/
 const template = `
 <div class="game">
-    <div class="player" \${ ==> player.element} style="top: \${player.position.y}px;left: \${player.position.x}px; rotate: \${player.angle}deg"></div>
-    <div class="asteroid" \${ ==> asteroid.element} style="top: \${asteroid.position.y}px;left: \${asteroid.position.x}px;"></div>
-    <canvas \${ ==> canvas}></canvas>
+  <div class="player" \${ ==> player.element} style="translate: \${player.position.x}px \${player.position.y}px; left: -25px; top: -25px; rotate: \${player.angle}deg;"></div>
+  <div class="asteroid" \${ ==> asteroid.element} style="translate: \${asteroid.position.x}px \${asteroid.position.y}px; left: -40px; top: -40px;"></div>
+  <canvas \${ ==> canvas}></canvas>
 </div>
 `;
+
+const THRUSTFORCE = 20;
 
 const model = {
   canvas: <HTMLCanvasElement | null>null,
@@ -103,43 +105,41 @@ const ang2Rad = (a: number): number => {
 };
 
 const thrust = () => {
-  const tempX = Math.cos(ang2Rad(Physics.entities[0].orientation));
-  const tempY = Math.sin(ang2Rad(Physics.entities[0].orientation));
+  const tempX = THRUSTFORCE * Math.cos(ang2Rad(Physics.entities[0].orientation));
+  const tempY = THRUSTFORCE * Math.sin(ang2Rad(Physics.entities[0].orientation));
   const dir = new Vector(tempX, tempY);
-  console.log("thrust");
+
   Physics.entities[0].addForce({
     name: "thrust",
     direction: dir,
-    duration: 0.01,
+    duration: 0,
     magnitude: 500,
   });
-  console.log(Physics.entities[0].forces);
 };
 
 const reverse = () => {
   const currentAngle = Physics.entities[0].orientation;
   let reverseAngle = currentAngle + 180;
 
-  const tempX = Math.cos(ang2Rad(reverseAngle));
-  const tempY = Math.sin(ang2Rad(reverseAngle));
+  const tempX = THRUSTFORCE * Math.cos(ang2Rad(reverseAngle));
+  const tempY = THRUSTFORCE * Math.sin(ang2Rad(reverseAngle));
   const dir = new Vector(tempX, tempY);
 
   Physics.entities[0].addForce({
     name: "reverse",
     direction: dir,
-    duration: 0.01,
+    duration: 0,
     magnitude: 500,
   });
-  console.log("reverse thrust");
 };
 
 const turnLeft = () => {
-  Physics.entities[0].orientation += -2.5;
+  Physics.entities[0].orientation += -3;
   console.log("turn L");
 };
 
 const turnRight = () => {
-  Physics.entities[0].orientation += 2.5;
+  Physics.entities[0].orientation += 3;
   console.log("turn R");
 };
 
@@ -154,10 +154,9 @@ const mapping = Input.map({
   ArrowRight: "turnR",
 });
 
-/**
+/**************************************************
  *  Screen Collision Management
- *
- */
+ **************************************************/
 
 const playerScreenCollision = () => {
   //check for screen collision
