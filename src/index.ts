@@ -87,11 +87,10 @@ const thrust = () => {
   Physics.entities[0].addForce({
     name: "thrust",
     direction: dir,
-    duration: 16,
+    duration: 0,
   });
+  console.log(Physics.entities[0].forces);
 };
-
-const removeThrust = () => {};
 
 const reverse = () => {
   const tempX = Math.cos(ang2Rad(Physics.entities[0].orientation));
@@ -110,6 +109,7 @@ const turnLeft = () => {
   Physics.entities[0].orientation += -1;
   console.log("turn L");
 };
+
 const turnRight = () => {
   Physics.entities[0].orientation += 1;
   console.log("turn R");
