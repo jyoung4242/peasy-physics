@@ -8,9 +8,12 @@ import { Input } from "@peasy-lib/peasy-input";
 //PEASY-UI
 /************************************************/
 const template = `
-<div class="game">
-    <div class="player" \${ ==> player.element} style="top: \${player.position.y}px;left: \${player.position.x}px;"></div>
-    <div class="asteroid" \${ ==> asteroid.element} style="top: \${asteroid.position.y}px;left: \${asteroid.position.x}px;"></div>
+<div>
+  <div class="game">
+      <div class="player" \${ ==> player.element} style="translate: \${player.position.x}px \${player.position.y}px; left: -25px; top: -25px;"></div>
+      <div class="asteroid" \${ ==> asteroid.element} style="translate: \${asteroid.position.x}px \${asteroid.position.y}px; left: -40px; top: -40px;"></div>
+  </div>
+  <canvas \${ ==> canvas}></canvas>
 </div>
 `;
 
@@ -23,6 +26,7 @@ const model = {
     element: <any>null,
     position: { x: 120, y: 50 },
   },
+  canvas: <any>undefined,
 };
 UI.create(document.body, template, model);
 UI.initialize(false);
@@ -35,6 +39,7 @@ const playerShape = {
   radius: <any>undefined,
   size: <any>undefined,
   alignment: <any>undefined,
+  color: 'blue',
 };
 playerShape.size = new Vector(50, 50);
 
@@ -43,10 +48,12 @@ const asteroidShape = {
   radius: <any>undefined,
   size: <any>undefined,
   alignment: <any>undefined,
+  color: 'red',
 };
-asteroidShape.radius = new Vector(40, 40);
+asteroidShape.radius = 40;
 
 class Entity {
+  public entity: any;
   public shapes = <any>[];
   public forces = <any>[];
   public mass: number = 1;
@@ -55,17 +62,24 @@ class Entity {
   public constructor(public position: Vector, public orientation = 0) {}
 }
 
-Physics.initialize();
+Physics.initialize({
+  ctx: model.canvas.getContext('2d'),
+  showAreas: true,
+  // resolver: 'spatial-hash-grid',
+});
 
 let player = new Entity(new Vector(50, 50));
 player.shapes = [playerShape];
 player.forces = [];
 player.maxSpeed = 500;
+player.color = 'blue';
+// player.entity = model.player;
 
 let asteroid = new Entity(new Vector(120, 50));
 asteroid.shapes = [asteroidShape];
 asteroid.forces = [];
 asteroid.maxSpeed = 500;
+asteroid.color = 'red';
 
 let entities = Physics.addEntities([player, asteroid]);
 player = entities[0];
@@ -82,7 +96,7 @@ const ang2Rad = (a: number): number => {
 const thrust = () => {
   const tempX = Math.cos(ang2Rad(Physics.entities[0].orientation));
   const tempY = Math.sin(ang2Rad(Physics.entities[0].orientation));
-  const dir = new Vector(tempX, tempY);
+  const dir = new Vector(tempX, tempY).multiply(50);
   console.log("thrust");
   Physics.entities[0].addForce({
     name: "thrust",
@@ -139,8 +153,8 @@ const game_loop = (timestamp: number) => {
   let deltaTime = (timestamp - lasttime) / 1000;
   if (deltaTime > 1.5) {
     deltaTime = 0;
-    lasttime = timestamp;
   }
+  lasttime = timestamp;
 
   //check inputs
   if (Input.is("thrust")) thrust();
