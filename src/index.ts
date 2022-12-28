@@ -101,7 +101,7 @@ const reverse = () => {
   Physics.entities[0].addForce({
     name: "reverse",
     direction: dir,
-    duration: 16,
+    duration: 0,
   });
   console.log("reverse thrust");
 };
