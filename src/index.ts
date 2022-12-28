@@ -9,15 +9,18 @@ import { Input } from "@peasy-lib/peasy-input";
 /************************************************/
 const template = `
 <div class="game">
-    <div class="player" \${ ==> player.element} style="top: \${player.position.y}px;left: \${player.position.x}px;"></div>
+    <div class="player" \${ ==> player.element} style="top: \${player.position.y}px;left: \${player.position.x}px; rotate: \${player.angle}deg"></div>
     <div class="asteroid" \${ ==> asteroid.element} style="top: \${asteroid.position.y}px;left: \${asteroid.position.x}px;"></div>
+    <canvas \${ ==> canvas}></canvas>
 </div>
 `;
 
 const model = {
+  canvas: <HTMLCanvasElement | null>null,
   player: {
     element: <any>null,
     position: { x: 50, y: 50 },
+    angle: 0,
   },
   asteroid: {
     element: <any>null,
@@ -26,6 +29,23 @@ const model = {
 };
 UI.create(document.body, template, model);
 UI.initialize(false);
+
+let screenWidth: number;
+let screenHeight: number;
+
+window.addEventListener("DOMContentLoaded", () => {
+  model.canvas.setAttribute("width", window.innerWidth.toString());
+  model.canvas.setAttribute("height", window.innerHeight.toString());
+  screenWidth = window.innerWidth;
+  screenHeight = window.innerHeight;
+});
+
+window.addEventListener("resize", () => {
+  model.canvas.setAttribute("width", window.innerWidth.toString());
+  model.canvas.setAttribute("height", window.innerHeight.toString());
+  screenWidth = window.innerWidth;
+  screenHeight = window.innerHeight;
+});
 
 /********************************************** */
 //PEASY-Physics
@@ -44,7 +64,7 @@ const asteroidShape = {
   size: <any>undefined,
   alignment: <any>undefined,
 };
-asteroidShape.radius = new Vector(40, 40);
+asteroidShape.radius = 40;
 
 class Entity {
   public shapes = <any>[];
@@ -55,25 +75,28 @@ class Entity {
   public constructor(public position: Vector, public orientation = 0) {}
 }
 
-Physics.initialize();
+Physics.initialize({
+  ctx: model.canvas.getContext("2d"),
+  showAreas: true,
+});
 
-let player = new Entity(new Vector(50, 50));
+let player = new Entity(new Vector(250, 250));
 player.shapes = [playerShape];
 player.forces = [];
 player.maxSpeed = 500;
+player.color = "blue";
 
-let asteroid = new Entity(new Vector(120, 50));
+let asteroid = new Entity(new Vector(450, 450));
 asteroid.shapes = [asteroidShape];
 asteroid.forces = [];
 asteroid.maxSpeed = 500;
+asteroid.color = "red";
 
 let entities = Physics.addEntities([player, asteroid]);
 player = entities[0];
 asteroid = entities[1];
 player.mass = 3;
 asteroid.mass = 10;
-
-console.log(player, asteroid);
 
 const ang2Rad = (a: number): number => {
   return a * (Math.PI / 180);
@@ -87,31 +110,36 @@ const thrust = () => {
   Physics.entities[0].addForce({
     name: "thrust",
     direction: dir,
-    duration: 0,
+    duration: 0.01,
+    magnitude: 500,
   });
   console.log(Physics.entities[0].forces);
 };
 
 const reverse = () => {
-  const tempX = Math.cos(ang2Rad(Physics.entities[0].orientation));
-  const tempY = Math.sin(ang2Rad(Physics.entities[0].orientation));
-  const dir = new Vector(-tempX, -tempY);
+  const currentAngle = Physics.entities[0].orientation;
+  let reverseAngle = currentAngle + 180;
+
+  const tempX = Math.cos(ang2Rad(reverseAngle));
+  const tempY = Math.sin(ang2Rad(reverseAngle));
+  const dir = new Vector(tempX, tempY);
 
   Physics.entities[0].addForce({
     name: "reverse",
     direction: dir,
-    duration: 0,
+    duration: 0.01,
+    magnitude: 500,
   });
   console.log("reverse thrust");
 };
 
 const turnLeft = () => {
-  Physics.entities[0].orientation += -1;
+  Physics.entities[0].orientation += -2.5;
   console.log("turn L");
 };
 
 const turnRight = () => {
-  Physics.entities[0].orientation += 1;
+  Physics.entities[0].orientation += 2.5;
   console.log("turn R");
 };
 
@@ -125,6 +153,51 @@ const mapping = Input.map({
   ArrowLeft: "turnL",
   ArrowRight: "turnR",
 });
+
+/**
+ *  Screen Collision Management
+ *
+ */
+
+const playerScreenCollision = () => {
+  //check for screen collision
+  if (model.player.position.x > screenWidth) {
+    Physics.entities[0].position.x = -10;
+    model.player.position.x = -10;
+  }
+  if (model.player.position.x < -25) {
+    Physics.entities[0].position.x = screenWidth;
+    model.player.position.x = screenWidth;
+  }
+  if (model.player.position.y > screenHeight) {
+    Physics.entities[0].position.y = -10;
+    model.player.position.y = -10;
+  }
+  if (model.player.position.y < -25) {
+    Physics.entities[0].position.y = screenHeight;
+    model.player.position.y = screenHeight;
+  }
+};
+
+const asteroidScreenCollision = () => {
+  //check for screen collision
+  if (model.asteroid.position.x > screenWidth) {
+    Physics.entities[1].position.x = -10;
+    model.asteroid.position.x = -10;
+  }
+  if (model.asteroid.position.x < -25) {
+    Physics.entities[1].position.x = screenWidth;
+    model.asteroid.position.x = screenWidth;
+  }
+  if (model.asteroid.position.y > screenHeight) {
+    Physics.entities[1].position.y = -10;
+    model.asteroid.position.y = -10;
+  }
+  if (model.asteroid.position.y < -25) {
+    Physics.entities[1].position.y = screenHeight;
+    model.asteroid.position.y = screenHeight;
+  }
+};
 
 /********************************************** */
 //Game Loop
@@ -150,9 +223,15 @@ const game_loop = (timestamp: number) => {
 
   Physics.update(deltaTime, timestamp);
   model.player.position = Physics.entities[0].position;
+  model.player.angle = Physics.entities[0].orientation;
   model.asteroid.position = Physics.entities[1].position;
+
+  playerScreenCollision();
+  asteroidScreenCollision();
+
   UI.update();
   requestAnimationFrame(game_loop);
+  lasttime = timestamp;
 };
 
 requestAnimationFrame(game_loop);
