@@ -62,20 +62,62 @@ player.shapes = [playerShape];
 player.forces = [];
 player.maxSpeed = 500;
 
-player = Physics.addEntities(player)[0];
-player.mass = 3;
-
 let asteroid = new Entity(new Vector(120, 50));
 asteroid.shapes = [asteroidShape];
 asteroid.forces = [];
 asteroid.maxSpeed = 500;
 
-asteroid = Physics.addEntities(asteroid)[1];
+let entities = Physics.addEntities([player, asteroid]);
+player = entities[0];
+asteroid = entities[1];
+player.mass = 3;
 asteroid.mass = 10;
 
-/*
- * Peasy-Input
- */
+console.log(player, asteroid);
+
+const ang2Rad = (a: number): number => {
+  return a * (Math.PI / 180);
+};
+
+const thrust = () => {
+  const tempX = Math.cos(ang2Rad(Physics.entities[0].orientation));
+  const tempY = Math.sin(ang2Rad(Physics.entities[0].orientation));
+  const dir = new Vector(tempX, tempY);
+  console.log("thrust");
+  Physics.entities[0].addForce({
+    name: "thrust",
+    direction: dir,
+    duration: 16,
+  });
+};
+
+const removeThrust = () => {};
+
+const reverse = () => {
+  const tempX = Math.cos(ang2Rad(Physics.entities[0].orientation));
+  const tempY = Math.sin(ang2Rad(Physics.entities[0].orientation));
+  const dir = new Vector(-tempX, -tempY);
+
+  Physics.entities[0].addForce({
+    name: "reverse",
+    direction: dir,
+    duration: 16,
+  });
+  console.log("reverse thrust");
+};
+
+const turnLeft = () => {
+  Physics.entities[0].orientation += -1;
+  console.log("turn L");
+};
+const turnRight = () => {
+  Physics.entities[0].orientation += 1;
+  console.log("turn R");
+};
+
+/*************************************************/
+// Peasy-Input
+/*************************************************/
 
 const mapping = Input.map({
   ArrowUp: "thrust",
@@ -101,13 +143,15 @@ const game_loop = (timestamp: number) => {
   }
 
   //check inputs
-  if (Input.is("thrust")) console.log("thrust");
-  if (Input.is("reverse")) console.log("reverse thrust");
-  if (Input.is("turnL")) console.log("turn L");
-  if (Input.is("turnR")) console.log("turn R");
+  if (Input.is("thrust")) thrust();
+  if (Input.is("reverse")) reverse();
+  if (Input.is("turnL")) turnLeft();
+  if (Input.is("turnR")) turnRight();
 
-  UI.update();
   Physics.update(deltaTime, timestamp);
+  model.player.position = Physics.entities[0].position;
+  model.asteroid.position = Physics.entities[1].position;
+  UI.update();
   requestAnimationFrame(game_loop);
 };
 
