@@ -1,8 +1,19 @@
 import "./style.css";
 
-import { Physics, Vector, Stadium, Circle, Entity as PhysicsEntity } from "@peasy-lib/peasy-physics";
+import { Physics, Vector, Stadium, Circle, Entity as PhysicsEntity, Intersection } from "@peasy-lib/peasy-physics";
 import { UI } from "@peasy-lib/peasy-ui";
 import { Input } from "@peasy-lib/peasy-input";
+import { Howl } from "howler";
+import boing from "./assets/boing.mp3";
+
+var sound = new Howl({
+  src: boing,
+  sprite: {
+    bounce: [0, 1000],
+  },
+});
+
+//sound.play("bounce");
 
 /********************************************** */
 //PEASY-UI
@@ -96,6 +107,11 @@ asteroid.color = "red";
 
 let entities = Physics.addEntities([player, asteroid]);
 player = entities[0];
+entities[0].colliding = function (entity: PhysicsEntity, intersection: Intersection): string {
+  console.log("collision: ", entity);
+  sound.play("bounce");
+  return "collide";
+};
 asteroid = entities[1];
 player.mass = 3;
 asteroid.mass = 10;
