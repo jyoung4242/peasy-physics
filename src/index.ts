@@ -1,6 +1,14 @@
 import "./style.css";
 
-import { Physics, Vector, Stadium, Circle, Entity as PhysicsEntity, Intersection } from "@peasy-lib/peasy-physics";
+import {
+  Physics,
+  Vector,
+  Stadium,
+  Circle,
+  Entity as PhysicsEntity,
+  Intersection,
+  CollidingResolution,
+} from "@peasy-lib/peasy-physics";
 import { UI } from "@peasy-lib/peasy-ui";
 import { Input } from "@peasy-lib/peasy-input";
 import { Howl } from "howler";
@@ -107,7 +115,7 @@ asteroid.color = "red";
 
 let entities = Physics.addEntities([player, asteroid]);
 player = entities[0];
-entities[0].colliding = function (entity: PhysicsEntity, intersection: Intersection): string {
+entities[0].colliding = function (entity: PhysicsEntity, intersection: Intersection): CollidingResolution {
   console.log("collision: ", entity);
   sound.play("bounce");
   return "collide";

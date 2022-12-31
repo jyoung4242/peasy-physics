@@ -24,7 +24,7 @@
   },
   "dependencies": {
     "@peasy-lib/peasy-input": "^0.2.0",
-    "@peasy-lib/peasy-physics": "^0.2.1",
+    "@peasy-lib/peasy-physics": "^0.2.4",
     "@peasy-lib/peasy-ui": "^0.9.21",
     "@types/howler": "^2.2.7",
     "howler": "^2.2.3"
